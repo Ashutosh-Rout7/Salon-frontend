@@ -17,38 +17,45 @@ const LoginForm = () => {
     email:"",
     password:""
   })
-
+  
   const handleLoginChange=(e)=>{
       const{name,value}=e.target;
        setLogin((prev)=>({...prev,[name]:value}));
   }
 
-  const handleSubmit =async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
   if (!login.email || !login.password) {
     Setmessage("please enter valid field");
     return;
   }
-     Setmessage("");
-     try {
-      Setloading(true);
-       const data = await LoginApi(login);
-       loginuser(data);
-       navigate("/");
-       setLogin({
-        email:"",
-        password:""
-       })
-       
-     } catch (error) {
-        console.log(error);
-        Setmessage(error.response?.data?.message || "Login failed. Try again.");
-     }
-     finally{
-       Setloading(false);
-     }
-  };
+
+  Setmessage("");
+
+  try {
+    Setloading(true);
+
+    const data = await LoginApi(login);
+
+    await loginuser(data);
+
+    navigate("/");
+
+    setLogin({
+      email: "",
+      password: ""
+    });
+
+  } catch (error) {
+    console.log(error);
+    Setmessage(
+      error.response?.data?.message || "Login failed. Try again."
+    );
+  } finally {
+    Setloading(false);
+  }
+};
 
   return (
     <Box

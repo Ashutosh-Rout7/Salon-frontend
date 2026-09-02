@@ -1,19 +1,14 @@
 import React, { useState } from "react";
-import {
-  TextField,
-  Button,
-  Box,
-  Rating,
-  InputLabel,
-  Typography,
-} from "@mui/material";
+import { TextField, Button, Box, Rating, InputLabel, Typography } from "@mui/material";
+import { createReview} from '../../AllServices/ReivewService';
 
-const CreateReviewForm = () => {
+const CreateReviewForm = ({ salonId, onReviewAdded }) => {
   const [reviewText, setReviewText] = useState("");
   const [reviewRating, setReviewRating] = useState(0);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (reviewText.trim().length < 10) {
@@ -26,7 +21,18 @@ const CreateReviewForm = () => {
     }
 
     setError("");
-    console.log("Form Submitted:", { reviewText, reviewRating });
+    try {
+      setLoading(true);
+      const newReview = await createReview(salonId, { reviewText, reviewRating });
+      setReviewText("");
+      setReviewRating(0);
+      if (onReviewAdded) onReviewAdded(newReview);
+    } catch (err) {
+      console.log(err);
+      setError(err.response?.data?.message || "Failed to submit review.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -66,8 +72,8 @@ const CreateReviewForm = () => {
         </Typography>
       )}
 
-      <Button color="primary" variant="contained" type="submit">
-        Submit Review
+      <Button color="primary" variant="contained" type="submit" disabled={loading}>
+        {loading ? "Submitting..." : "Submit Review"}
       </Button>
     </Box>
   );

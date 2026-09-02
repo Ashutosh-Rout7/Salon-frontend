@@ -1,67 +1,238 @@
-import React from "react";
+import React, { useState } from "react";
+
 import {
   TextField,
   Button,
-  IconButton,
   Grid,
+  Typography,
+  CircularProgress,
 } from "@mui/material";
+
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import CloseIcon from "@mui/icons-material/Close";
 
+import { useCategory } from "../../Context/CategoryContext";
+
 const CategoryForm = () => {
+  const { addCategory } = useCategory();
+
+  const [name, setName] = useState("");
+  const [image, setImage] = useState(null);
+
+  const [preview, setPreview] = useState("");
+
+  const [loading, setLoading] = useState(false);
+
+  const [message, setMessage] = useState("");
+
+  const [error, setError] = useState("");
+
+  // ==================================
+  // IMAGE CHANGE
+  // ==================================
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+
+    if (!file) {
+      return;
+    }
+
+    setImage(file);
+
+    const imageUrl = URL.createObjectURL(file);
+
+    setPreview(imageUrl);
+  };
+
+  // ==================================
+  // REMOVE IMAGE
+  // ==================================
+  const handleRemoveImage = () => {
+    setImage(null);
+    setPreview("");
+  };
+
+  // ==================================
+  // SUBMIT
+  // ==================================
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    setMessage("");
+    setError("");
+
+    if (!name.trim()) {
+      setError("Category name is required.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      /*
+       * IMPORTANT:
+       *
+       * This assumes your backend accepts:
+       *
+       * {
+       *    "name": "Hair Styling",
+       *    "image": "..."
+       * }
+       *
+       * If your backend expects MultipartFile,
+       * see the note below.
+       */
+
+      const categoryData = {
+        name: name.trim(),
+
+        // Only send image if you have one.
+        // This currently sends the local preview URL.
+        image: preview || "",
+      };
+
+      console.log("Sending category:", categoryData);
+
+      await addCategory(categoryData);
+
+      setMessage("Category created successfully.");
+
+      // Reset form
+      setName("");
+      setImage(null);
+      setPreview("");
+
+    } catch (err) {
+      console.error(err);
+
+      setError(
+        err.response?.data?.message ||
+          "Failed to create category."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex justify-center items-center">
-      <form className="space-y-4 p-4 w-full lg:w-1/2">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 p-4 w-full lg:w-1/2"
+      >
         <Grid container spacing={2}>
-          {/* Image upload placeholder (static) */}
-          <Grid className="w-24 h-24" size={{ xs: 12 }}>
-            <input
-              type="file"
-              accept="image/*"
-              id="fileInput"
-              style={{ display: "none" }}
+
+          {/* ========================= */}
+          {/* IMAGE */}
+          {/* ========================= */}
+          <Grid size={{ xs: 12 }}>
+
+            {!preview ? (
+              <>
+                <input
+                  type="file"
+                  accept="image/*"
+                  id="fileInput"
+                  style={{ display: "none" }}
+                  onChange={handleImageChange}
+                />
+
+                <label htmlFor="fileInput">
+                  <span className="w-24 h-24 cursor-pointer flex items-center justify-center p-3 border rounded-md border-gray-400">
+                    <AddPhotoAlternateIcon className="text-gray-700" />
+                  </span>
+                </label>
+              </>
+            ) : (
+              <div className="relative w-24 h-24">
+
+                <img
+                  src={preview}
+                  alt="Category preview"
+                  className="w-24 h-24 object-cover rounded-md border"
+                />
+
+                <Button
+                  onClick={handleRemoveImage}
+                  size="small"
+                  sx={{
+                    minWidth: 0,
+                    position: "absolute",
+                    top: -10,
+                    right: -10,
+                    borderRadius: "50%",
+                    width: 30,
+                    height: 30,
+                    padding: 0,
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </Button>
+
+              </div>
+            )}
+          </Grid>
+
+          {/* ========================= */}
+          {/* NAME */}
+          {/* ========================= */}
+          <Grid size={{ xs: 12 }}>
+            <TextField
+              fullWidth
+              name="name"
+              label="Category Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
             />
-            <label className="relative" htmlFor="fileInput">
-              <span className="w-24 h-24 cursor-pointer flex items-center justify-center p-3 border rounded-md border-gray-400">
-                <AddPhotoAlternateIcon className="text-gray-700" />
-              </span>
-            </label>
-
-            {/* Static preview example - remove if not needed */}
-            {/*
-            <div className="relative border">
-              <img
-                className="w-24 h-24 object-cover"
-                src="/placeholder.jpg"
-                alt="Category"
-              />
-              <IconButton
-                size="small"
-                color="error"
-                sx={{ position: "absolute", top: 0, right: 0, outline: "none" }}
-              >
-                <CloseIcon sx={{ fontSize: "1rem" }} />
-              </IconButton>
-            </div>
-            */}
           </Grid>
 
-          {/* Name field */}
-          <Grid size={{ xs: 12, sm: 12 }}>
-            <TextField fullWidth id="name" name="name" label="name" required />
-          </Grid>
+          {/* ========================= */}
+          {/* ERROR */}
+          {/* ========================= */}
+          {error && (
+            <Grid size={{ xs: 12 }}>
+              <Typography color="error">
+                {error}
+              </Typography>
+            </Grid>
+          )}
 
-          {/* Submit button */}
-          <Grid size={12}>
+          {/* ========================= */}
+          {/* SUCCESS */}
+          {/* ========================= */}
+          {message && (
+            <Grid size={{ xs: 12 }}>
+              <Typography color="success.main">
+                {message}
+              </Typography>
+            </Grid>
+          )}
+
+          {/* ========================= */}
+          {/* SUBMIT */}
+          {/* ========================= */}
+          <Grid size={{ xs: 12 }}>
             <Button
               type="submit"
-              variant="outlined"
+              variant="contained"
               fullWidth
-              sx={{ py: ".8rem" }}
+              disabled={loading}
+              sx={{
+                py: ".8rem",
+              }}
             >
-              create category
+              {loading ? (
+                <CircularProgress
+                  size={24}
+                  color="inherit"
+                />
+              ) : (
+                "CREATE CATEGORY"
+              )}
             </Button>
           </Grid>
+
         </Grid>
       </form>
     </div>

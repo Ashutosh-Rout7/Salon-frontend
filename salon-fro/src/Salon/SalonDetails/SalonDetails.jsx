@@ -6,6 +6,7 @@ import Review from '../../Customer/Review/Review';
 import CreateReviewForm from '../../Customer/Review/CreateReviewForm';
 import { useSalon } from '../../Context/SalonContext';
 import { useParams } from 'react-router-dom';
+import { getReviewsBySalon } from '../../AllServices/ReivewService';
 
 const tabs = [{ name: "All services" }, { name: "Reviews" }, { name: "Create Review" }];
 
@@ -16,9 +17,26 @@ const SalonDetails = () => {
   const { id } = useParams();
   const { salonDetail, detailLoading, detailError, fetchSalonById } = useSalon();
 
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+
   useEffect(() => {
     if (id) fetchSalonById(id);
   }, [id, fetchSalonById]);
+
+  useEffect(() => {
+    if (!id) return;
+    setReviewsLoading(true);
+    getReviewsBySalon(id)
+      .then((data) => setReviews(data))
+      .catch((err) => console.log(err))
+      .finally(() => setReviewsLoading(false));
+  }, [id]);
+
+  const addNewReview = (newReview) => {
+    setReviews((prev) => [newReview, ...prev]);
+    setActiveTab(tabs[1]); // jump to Reviews tab after submitting
+  };
 
   if (detailLoading) {
     return (
@@ -56,10 +74,10 @@ const SalonDetails = () => {
           <div>
             {activeTab.name === "Create Review" ? (
               <div className='flex justify-center'>
-                <CreateReviewForm salonId={id} />
+                <CreateReviewForm salonId={id} onReviewAdded={addNewReview} />
               </div>
             ) : activeTab.name === "Reviews" ? (
-              <Review salonId={id} />
+              <Review reviews={reviews} loading={reviewsLoading} />
             ) : (
               <SalonServiceDetails salon={salonDetail} />
             )}
