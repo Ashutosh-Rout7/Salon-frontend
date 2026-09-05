@@ -48,3 +48,17 @@ export const getuserProfile = async ()=>{
     throw error;
   }
 }
+
+//request to become salon owner
+export const requestSalonOwner = async (email) => {
+  try {
+    const response = await API.post(
+      `/auth/request-salon-owner?email=${encodeURIComponent(email)}`
+    );
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+

@@ -7,6 +7,7 @@ import RegisterForm from './Auth/RegisterForm';
 import LoginForm from './Auth/LoginForm';
 import Footer from './Customer/footer/Footer';
 import ManageSalon from './Seller/components/ManageSalon';
+import AdminRoutes from './Admin/AdminRoutes';
 
 function App() {
 
@@ -15,6 +16,7 @@ function App() {
 
          <Routes>
            <Route path='/salon-dashboard/*' element={<SalonDashboard/>}/>
+           <Route path='/admin/*' element={<AdminRoutes/>}/>
            <Route path='/register' element={<RegisterForm/>}/>
            <Route path='/login' element={<LoginForm/>}/>
            <Route path='*' element={<CustomerRoutes/>}/>

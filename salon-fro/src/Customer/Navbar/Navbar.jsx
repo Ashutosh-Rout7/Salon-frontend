@@ -7,11 +7,14 @@ import {
   Menu,
   MenuItem,
   useTheme,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import { useNavigate } from "react-router-dom";
 import { useauth } from "../../Context/AuthContext";
+import { requestSalonOwner } from "../../AllServices/Authservice";
 
 const Navbar = () => {
   const theme = useTheme();
@@ -20,6 +23,8 @@ const Navbar = () => {
   const { user, logout } = useauth();
 
   const [anchorEl, setAnchorEl] = useState(null);
+  const [submittingPartner, setSubmittingPartner] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   const open = Boolean(anchorEl);
 
@@ -51,11 +56,55 @@ const Navbar = () => {
     handleClose();
   };
 
+  // Go to admin dashboard
+  const handleAdminDashboard = () => {
+    navigate("/admin/dashboard");
+    handleClose();
+  };
+
   // Logout
   const handleLogout = () => {
     logout();
     handleClose();
     navigate("/");
+  };
+
+  // ------------------------------------------------------
+  // BECOME PARTNER — submits a salon-owner request
+  // ------------------------------------------------------
+  const handleBecomePartner = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    if (!user.email) {
+      setSnackbar({ open: true, message: "Unable to submit request — missing email.", severity: "error" });
+      return;
+    }
+
+    setSubmittingPartner(true);
+
+    try {
+      await requestSalonOwner(user.email);
+      setSnackbar({
+        open: true,
+        message: "Request submitted. Awaiting admin approval.",
+        severity: "success",
+      });
+    } catch (err) {
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data ||
+        "Failed to submit request. Please try again.";
+      setSnackbar({
+        open: true,
+        message: typeof msg === "string" ? msg : "Failed to submit request.",
+        severity: "error",
+      });
+    } finally {
+      setSubmittingPartner(false);
+    }
   };
 
   return (
@@ -86,13 +135,16 @@ const Navbar = () => {
       {/* ================= RIGHT SIDE ================= */}
       <div className="flex items-center gap-3 md:gap-6">
 
-        {/* Become Partner */}
-        <Button
-          variant="outlined"
-          onClick={() => navigate("/become-partner")}
-        >
-          Become Partner
-        </Button>
+        {/* Become Partner — only shown to customers, hidden for owners/admins */}
+        {(!user || user.role === "CUSTOMER") && (
+          <Button
+            variant="outlined"
+            onClick={handleBecomePartner}
+            disabled={submittingPartner}
+          >
+            {submittingPartner ? "Submitting..." : "Become Partner"}
+          </Button>
+        )}
 
         {/* Notifications */}
         <IconButton onClick={() => navigate("/notifications")}>
@@ -154,6 +206,13 @@ const Navbar = () => {
                 </MenuItem>
               )}
 
+              {/* ================= ADMIN ONLY ================= */}
+              {user?.role === "ADMIN" && (
+                <MenuItem onClick={handleAdminDashboard}>
+                  Admin Dashboard
+                </MenuItem>
+              )}
+
               {/* Logout */}
               <MenuItem onClick={handleLogout}>
                 Logout
@@ -185,6 +244,22 @@ const Navbar = () => {
           </div>
         )}
       </div>
+
+      {/* Feedback for Become Partner action */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

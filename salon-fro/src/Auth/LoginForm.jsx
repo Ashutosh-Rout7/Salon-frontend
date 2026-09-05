@@ -38,9 +38,25 @@ const handleSubmit = async (e) => {
 
     const data = await LoginApi(login);
 
-    await loginuser(data);
+    const loggedInUser = await loginuser(data);
 
-    navigate("/");
+    // -----------------------------------------------------
+    // ROLE-BASED REDIRECT after login
+    // -----------------------------------------------------
+    switch (loggedInUser.role) {
+      case "ADMIN":
+        navigate("/admin/dashboard");
+        break;
+
+      case "SALON_OWNER":
+        navigate("/salon-dashboard");
+        break;
+
+      case "CUSTOMER":
+      default:
+        navigate("/");
+        break;
+    }
 
     setLogin({
       email: "",
