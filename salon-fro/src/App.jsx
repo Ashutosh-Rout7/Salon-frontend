@@ -6,6 +6,7 @@ import CustomerRoutes from './Routes/CustomerRoutes';
 import RegisterForm from './Auth/RegisterForm';
 import LoginForm from './Auth/LoginForm';
 import Footer from './Customer/footer/Footer';
+import ManageSalon from './Seller/components/ManageSalon';
 
 function App() {
 
@@ -17,8 +18,8 @@ function App() {
            <Route path='/register' element={<RegisterForm/>}/>
            <Route path='/login' element={<LoginForm/>}/>
            <Route path='*' element={<CustomerRoutes/>}/>
+           <Route path='/manage-salon' element={<ManageSalon/>}/>
          </Routes>
-
          <Footer/>
     </ThemeProvider>
   )

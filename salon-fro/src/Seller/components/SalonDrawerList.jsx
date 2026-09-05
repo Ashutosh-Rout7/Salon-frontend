@@ -19,6 +19,12 @@ const menu = [
     activeIcon: <DashboardIcon className="text-white" />,
   },
   {
+    name: "CreateSalon",
+    path: "/salon-dashboard/create-salon",
+    icon: <DashboardIcon className="text-primary-color" />,
+    activeIcon: <DashboardIcon className="text-white" />,
+  },
+  {
     name: "Bookings",
     path: "/salon-dashboard/bookings",
     icon: <ShoppingBagIcon className="text-primary-color" />,
@@ -72,7 +78,7 @@ const menu2 = [
     activeIcon: <AccountBox className="text-white" />,
   },
   {
-    name: "Logout",
+    name: "Back",
     path: "/",
     icon: <LogoutIcon className="text-primary-color" />,
     activeIcon: <LogoutIcon className="text-white" />,

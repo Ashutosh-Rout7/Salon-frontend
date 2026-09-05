@@ -246,6 +246,51 @@ export function SalonProvider({ children }) {
     []
   );
 
+  // ======================================================
+  // NEW: refresh mySalon directly after an update.
+  //
+  // Without this, after ManageSalon calls updateSalon(),
+  // "mySalon" here would stay stale (it only comes from
+  // AuthContext's snapshot) until a full re-login/refresh.
+  // This re-fetches the salon by ID right after a save.
+  // ======================================================
+  const refreshMySalon = useCallback(async () => {
+
+    if (!salonId) {
+      console.warn("refreshMySalon: no salonId available");
+      return;
+    }
+
+    setMySalonLoading(true);
+    setMySalonError(null);
+
+    try {
+
+      const updated = await getSalonById(salonId);
+
+      console.log(
+        "SalonContext - refreshed mySalon:",
+        updated
+      );
+
+      setMySalon(updated);
+
+    } catch (err) {
+
+      console.error(
+        "Failed to refresh my salon:",
+        err.response?.data || err.message
+      );
+
+      setMySalonError(err);
+
+    } finally {
+
+      setMySalonLoading(false);
+
+    }
+  }, [salonId]);
+
   const value = {
     salon,
     loading,
@@ -258,6 +303,7 @@ export function SalonProvider({ children }) {
     detailLoading,
     detailError,
     fetchSalonById,
+    refreshMySalon,
   };
 
 

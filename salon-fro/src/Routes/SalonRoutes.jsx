@@ -9,12 +9,14 @@ import TransactionTable from '../Admin Salon/Transaction/TransactionTable'
 import Notifications from '../Customer/Notification/Notifications'
 import Payment from '../Admin Salon/Payment/Payment'
 import Profile from '../Admin Salon/Profile/Profile'
+import CreateSalon from '../Seller/components/CreateSalon';
 
 const SalonRoutes = () => {
   return (
     <div>
          <Routes>
             <Route path='/' element={<SalonHome/>}/>
+            <Route path='/create-salon' element={<CreateSalon/>}/>
             <Route path='/services' element={<ServiceTable/>}/>
             <Route path='/add-services' element={<CreateServiceForm/>}/>
             <Route path='/bookings' element={ <BookingTable/>}/>
