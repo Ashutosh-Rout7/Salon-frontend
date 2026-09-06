@@ -8,6 +8,8 @@ import LoginForm from './Auth/LoginForm';
 import Footer from './Customer/footer/Footer';
 import ManageSalon from './Seller/components/ManageSalon';
 import AdminRoutes from './Admin/AdminRoutes';
+import PaymentSuccess from './payment/PaymentSuccess';
+import PaymentCancel from './payment/PaymentCancel';
 
 function App() {
 
@@ -21,6 +23,8 @@ function App() {
            <Route path='/login' element={<LoginForm/>}/>
            <Route path='*' element={<CustomerRoutes/>}/>
            <Route path='/manage-salon' element={<ManageSalon/>}/>
+           <Route path='/payment-success/:orderId' element={<PaymentSuccess/>}/>
+           <Route path='/payment/cancel' element={<PaymentCancel/>}/>
          </Routes>
          <Footer/>
     </ThemeProvider>

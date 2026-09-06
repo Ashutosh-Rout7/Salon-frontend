@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react'
 import CategoryCard from './CategoryCard'
 import ServiceCard from './ServiceCard';
-import { Button, Divider } from '@mui/material';
+import { Button, Divider, TextField, Alert, CircularProgress } from '@mui/material';
 import { RemoveShoppingCart, ShoppingCart } from '@mui/icons-material';
 import SelectedServiceList from './SelectedServiceList';
 import { useCategory } from '../../Context/CategoryContext';
 import { useService } from '../../Context/ServicesContext';
+import { createBooking } from '../../AllServices/Bookingservice';
+import { useNavigate } from 'react-router-dom';
 
 const SalonServiceDetails = ({ salon }) => {
+
+  const navigate = useNavigate();
 
   const { getCategoriesBySalonId, loading: categoriesLoading } = useCategory();
   const { services, loading: servicesLoading, fetchServicesBySalon } = useService();
@@ -29,7 +33,50 @@ const SalonServiceDetails = ({ salon }) => {
     : services;
 
   const [selectedServices, setSelectedServices] = useState([]);
+  const [startTime, setStartTime] = useState('');
+  const [booking, setBooking] = useState(false);
+  const [error, setError] = useState(null);
 
+ const handleBookNow = async () => {
+  setError(null);
+
+  if (!startTime) {
+    setError('Please select a date and time for your appointment.');
+    return;
+  }
+
+  if (selectedServices.length === 0) {
+    setError('Please select at least one service.');
+    return;
+  }
+
+  setBooking(true);
+
+  try {
+    const payload = {
+      startTime: `${startTime}:00`,
+      serviceIds: selectedServices.map((s) => s.id),
+    };
+
+    const response = await createBooking(salon.id, 'STRIPE', payload);
+
+    // response = { payment_link_url, payment_link_id }
+    if (response?.payment_link_url) {
+      window.location.href = response.payment_link_url;
+    } else {
+      setError('Payment link could not be generated.');
+    }
+
+  } catch (err) {
+    const msg =
+      err.response?.data?.message ||
+      err.response?.data ||
+      'Failed to create booking. Please try again.';
+    setError(typeof msg === 'string' ? msg : 'Failed to create booking.');
+  } finally {
+    setBooking(false);
+  }
+};
   return (
     <div className='lg:flex gap-5 h-[90vh] mt-10'>
       <section className='space-y-5 border-r lg:w-[25%] pr-5'>
@@ -73,7 +120,32 @@ const SalonServiceDetails = ({ salon }) => {
                 <h1 className='font-thin text-sm'>Selected services</h1>
               </div>
               <SelectedServiceList selectedServices={selectedServices} setSelectedServices={setSelectedServices} />
-              <Button fullWidth variant='contained'>Book Now</Button>
+
+              <TextField
+                fullWidth
+                required
+                type="datetime-local"
+                label="Appointment Date & Time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                sx={{ mb: 2 }}
+              />
+
+              {error && (
+                <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+                  {error}
+                </Alert>
+              )}
+
+              <Button
+                fullWidth
+                variant='contained'
+                onClick={handleBookNow}
+                disabled={booking}
+              >
+                {booking ? <CircularProgress size={22} color="inherit" /> : 'Book Now'}
+              </Button>
             </div>
           </div>
         ) : (
